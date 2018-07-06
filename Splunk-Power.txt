@@ -1,0 +1,318 @@
+Instructor On Demand --> questions with peers. 
+ButterCup Games 
+ 
+Module 1: (basics of Splunk User) 
+=========  
+Splunk Search Terms: 
+    Keywords, Booleans, Phrases, Fields, Wildcards, Comparisons 
+    Booleans AND OR NOT (uppercase) 
+    Transforming commands(Top Rare Stats) 
+    Dedup --> command removes results with duplicate field values. 
+
+Module 2: (Beyond Search Fundamentals) 
+========= 
+Case sensitivity 
+     Search terms, command names, clauses and functions are not case sensitive. 
+     If a command references a specific value, that value will be case sensitive. 
+     Field names are case sensitive and field values are not 
+     Field values from a Lookup are case sensitive by default 
+     When searhing uses tag, tag values should be case sensitive.
+     User with an Admin mode can choose values to be case sensitie when creating lookup tables 
+     Boolean operatores are case sensitive(Upper Case) 
+
+Why Time:
+     Time is the most efficient way filter in splunk
+     when Splunk indexes data that data will store in bucket
+     Buckets are directories containing set of raw data and indexing data.
+     Buckets have configurable:
+		maximum size and maximum time span  (by admin users)
+     Three types of Buckets
+        1) Hot: As events are indexed they are placed in hot.
+		hot buckets are only writeable buckets
+	2) Warm: hot buckets rolls to warm buckets when 
+			maximum size reached
+			Time span reached
+			Indexer is restarted
+                 Upon rolling, bucket is closed, renamed and changed to "read only" 
+                 renamed: db_1389230491_1389230488_5
+             1389230491(youngest event) and 1389230488(oldest event) in bucket.
+         3) Cold: Warm buckets rolls to cold bucket when 
+			maximum size reached
+			Time span reached
+          cold buckets are typically stored in differt locations than hot and warm buckets
+          This allows to be stored in slower, cost effective infrastructure
+      Distribution of buckets is more important in splunk search
+      When splunk searches, it used timestamp on splunk directory and opens bucket directory
+         and compressed the raw data according to splunk search
+      Bucket names in Splunk indexes are used to:
+		determine if the bucket should be searched based on the time range of the search
+
+Wildcards:
+      Wildcards are tested after all other search terms
+      Only trailing wildcardsmake efficient use of index
+      Wildcards at the beginning of a string cause splunk to search all events within timeframe
+		causing performance issue
+      Wildcards in the middle of a string produces inconsistent results
+      Avoid using wildcards to match punctuation
+      Be as specific as possible in search terms
+
+
+Search Modes: (makes searches more efficient)
+1)      Fast: emphasis performance only returning essential data
+	(Non Transforming Search: only fields required for the search are extracted and displayed.
+          Statistics and visualizations are not available.
+          only events and patterns are available)
+         (Transforming commands: have access to only statistics and visualization)
+2)      Verbose: emphasis completeness (returns all field and event data)
+	 (Non Transforming Search:events and patterns all fields of events are extracted)
+	 (Transforming commands: events, patterns, Statistics and visualizations)
+	Searching in verbose mode results in longer search times
+3)	Smart: is desinged to give best results for the search running using combination of both fast and verbose mode.
+          (Non Transforming Search: verbose mode)
+	  (Transforming commands: Fast)
+
+Best Practices:
+	The less data you have to search, the faster splunk will be.
+        Time is the most efficient filter, after time, index, source, host and sourcetype are most popular
+	Fields extracted at index time do not need to be extracted for each search.
+        More you tell the search engiene, more likely it is that you will get good results.
+
+Job Inspector:(inspect job --> job menu)
+	Determines which phase of a search takes the most time.
+	Dissects behavior of searches to help understood costs.
+	Any search job that has not expired can be inspected
+		inspect job --> job menu
+
+3rd Module:(Commands for visualization)
+===========
+Visualization Intro
+	Any search that returns statistical values can be viewed as a chart
+        Splunk includes reporting commands that help us to create tables specifically for visualiztion purpose
+
+Chat Command:
+	If a search returns statistics it can be viewed as a chart.
+	contains two clause statements (over and by)
+	Over clause tells splunk which field you want to be on the X asis	
+	Any stats function can be applied to the chart command
+
+		sourcetype=access status>299
+		| chart count over status by host (only value can be specified after by clause)
+				usernull=f (to remove null columns to chart
+        Chart command by default limited to 10 columns others can be included by limit column
+	useother=f to remove OTHER column in result/chart.
+	The over clause allows you to define which field is represented on the X axis of a chart.
+
+TimeChart command:
+	Performs stats aggregations over time
+	Time is always the X axis.
+
+		sourcetype=vendor_sales
+		| timechart count by poduct_name  (limit option available)
+	timechart command intellegently clusters data in time intervals depend on the time selected
+		sourcetype=vendor_sales
+		| timechart span=12hr count by poduct_name  (limit option available)
+       span to change clustered data time
+
+Visualization examples:
+	Format option in visualization
+		General, X-Axis,Y-axis,Chart Overlay, Legend
+
+Commands for visualization
+	1) top/rare: if we want to count the frequency for fileds
+	2) stats: to caluculate the statisticts b/w two or more fields when we do not need the data to be time based
+	3) chart:to caluculate the statisticts b/w two or more fields with an arbitarty filed used in X-axis that is not time
+		using by modififer each columns represent distinct values by splitting by
+	4) timchart: if you need calculate statistic using time field. It will also allow by modifier
+
+Module 4:
+=========
+Commands to pull geographic data from your machine data. Visualization to display data is easy to understand
+
+iplocation command:
+	is used to lookup and add location information to events
+	Search city, country, region, latitude and longitude added to events include external ip addresses
+
+	sourcetype=linux_secure action=success src_ip!=10.*
+	| iplocation src_ip  
+	(location fields created by iplocation fields is include fields that will be used for geostats command for mapping
+	
+Geostats command:
+	aggreagates geographical data for use on a map visualization.
+	sourcetype=vendor_sales
+	| geostats latfield=Vendorlatitude longfield=VendorLongitutude 
+	count by product_name globallimit=10
+
+	geostats with iplocation:
+        sourcetype=linux_secure action=success src_ip!=10.*
+	| iplocation src_ip
+	| geostats latfield=lat longfield=lon count
+
+Choropleth Map:
+	is another way to see our data in geographical visualization
+	in order to use this we need .kmz(compressed keyhole markup launguage file)
+	splunk ships with two kmz files
+		geo_us_states.kmz
+		geo_countries.kmz
+	Geom command:
+		Adds field with geographical data structures matching ploygons on map
+	sourcetpe=vend* vendorID>=5000 AND vendorID<=5055
+	| stats count as Sales by VendorCountry
+	| geom geo_countries featureIdField=vendorCountry
+	(geo_countries is feature collection)
+
+Single value visualizations:
+	single value and guages
+
+	sourcetpe=vend* vendorID>=5000 AND vendorID<=5055
+	| stats sum(price) as total
+	| guage total 0 3000 6000 7000
+	(gauge command to set ranges)
+
+Trendline Command:
+	Computes moving averages of field values
+
+	sourcetype=access-combined action=purchase
+	| timechart sum(price) as sales
+	| trendline wma2(sales) as trend
+
+	trend type 1) simple moving average(sma)
+		   2) exponential moving average(ema)
+		   30 weighted moving average(wma0
+	Time period b/w 2 and 10000
+	Field
+
+Field Format:
+	Format link in statistics tab
+
+Addtotals command:
+	Computes the sum of all numeric fields for each event
+
+	sourcetpe=vend* vendorID>=5000 AND vendorID<=5055
+	| chart sum(bytes) over host by file
+	| addtotals col=true label="Total" labelfield="host"
+	fieldname="Total by host"
+
+       col = true --> to create summary column
+       label = "Total"  --> label name in labelfield value
+
+Module 5:
+========
+Eval Command:
+	is used to caluculate and manipulate field values
+	Arithmatic, concatination, boolean operartors supported
+	Results can be written to new field or replace existing field
+	newly crearted values are case sensitive
+	eg: we can use eval to convert bytes to MG
+	mathematical operations
+	
+Fieldformat command:
+	Fomrat values without changing characteristics of underlying values
+	uses same function as eval command
+
+While eval creates new field values, the underlying data in the index does not change
+
+Multiple eval commands:
+	Eval commands can reference the results of the eval commands that come before it
+
+Never use where command when you can filter by search terms
+
+Module 6:
+Correlating events:
+Transaction:
+	Any group of related events that span time
+	Each event represents a user generating a single http request
+
+Transaction command:
+	transaction field-list (one or list)
+	definations:
+	   maxspam: Allows setting of maximum total time between earlist and latest events
+	   maxspan: Allows maximum total time between events
+	   startswith: Allows forming transactions starting with specified terms, field values, evaluations
+           endswith: Allows forming transactions ending with specified terms, field values, evaluations
+	   maxpause Finds groups of events where the span of time between included events does not exceed a specific value
+
+Which of these is NOT a field that is automatically created with the transaction command? maxcount
+
+Use Stats to see results of a calculation, or group events on a field value. 
+Use Transaction to see events correlated together, or grouped by start and end values.
+
+Module 7:
+=======
+Knowledge habits:
+Naming Convention:
+	OPS_WFA_Network_Security_na_IPwhoisAction
+	group__type_platform_category_Time_Description
+
+Module 8:
+Field Extractions;
+=================
+      Utility allows us to use a graphical user interface
+      to extract fields that persist as knowledge objects making them resuable in searches
+      
+How many ways are there to access the Field Extractor Utility? 3
+Once a field is created using the regex method, you cannot modify the underlying regular expression. false
+In the Field Extractor Utility, this button will display events that do not contain extracted fields. Non-Matchers
+When extracting fields, we may choose to use our own regular expressions true
+
+Module 9:
+Aliases and calc fields:
+Field aliases:
+Calculated fields must be based on extracted or discovered fields
+Fields from a lookup table or generated from a search command cannot be used.
+Once a field alias is created: You can still use the original field name to search
+Field aliases can only be applied to a single source type, source, or host. false
+Field aliases are used to normalize data.
+Calculated fields are based on underlying: eval expressions
+Calculated fields are based on underlying: false
+
+Module 10:
+Tags and Event Types:
+These allow you to categorize events based on search terms. event types
+Which search would limit an "alert" tag to the "host" field?  tag::host=alert
+Tags are descriptive names for key value pairs
+Event Types do not show up in the Fields List. false
+You can only add one tag per field value pair. false
+
+Module 11:
+macros:
+  Reusable search strings or portions of search strings
+  useful for frequent searches with complicated search syntax
+  macors allow to store entire search stings
+                  Time range independent
+	          pass argument to search
+
+Search macros:
+What is the correct way to name a macro with two arguments?us_sales(2)
+The number of arguments in a macro must be included in the macro name. true
+
+Module12:
+WorkFlow Actions
+     create links to interact with external resources or narrow search
+
+Get Method
+Post metod
+
+A Workflow action can:
+	Send field values to external sources.
+	Direct users to a specified URI.
+	/Execute a secondary search.
+This Workflow Action type sends field values to external resources. POST
+To use field value data from an event in a Workflow Action, we need to: Wrap the field in dollar signs.
+Workflow Actions can only be applied to a single field. FALSE
+This Workflow Action type directs users to a specified URI. get
+
+mODULE 13:
+Data models
+	Events Searches transactions  (Root event)
+Root Data Model:
+        Datasets --> Root Event/Root Search/Root transaction/child
+	Root Event enables us to create hierardhies based on a set of events, and are the most commanly used type of root data model object.
+	Root Search builds these hierarchies from a transforming search.
+	Root Search do not benifit from data model accelaraiton
+        avoid root searches whenever possible.
+        Root transaction objects allow us to create datasets from groups of related events that span time. They use an existing object from our data hierarchy to group on.
+	Child objects allos us to constrain or narrow down the evetns in the object above it in hierarchy tree.
+     
+Using transactions:
+        Transactions with datasets
+		do not benifit from data modek accelaration(think about the reports users will be running)

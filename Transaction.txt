@@ -1,0 +1,44 @@
+Transaction: is a related group of events.
+
+http | transaction host,cookie maxspan=30s maxpause=30s | highlight host
+
+duration,eventcount
+
+constraints: maxspan,maxpause,startswith,endswith,maxevents
+
+transaction JobName,Masking name=rdsjobs match=closest maxspan=2d startswith("Error") maxevents=20
+
+sendmail | transaction uid startswith="eventtype=login" endswith="eventtype=logout" maxspan=10m maxpause=10m
+
+startswith=<string>
+
+A search or eval-filtering expression which, if satisfied by an event, marks the beginning of a new transaction.
+For example:
+startswith="login"
+startswith=(username=foobar)
+startswith=eval(speed_field < max_speed_field)
+startswith=eval(speed_field < max_speed_field/12)
+Defaults to "".
+
+endswith=<transam-filter-string>
+
+A search or eval-filtering expression which, if satisfied by an event, marks the end of a transaction.
+For example:
+endswith="logout"
+endswith=(username=foobar)
+endswith=eval(speed_field < max_speed_field)
+endswith=eval(speed_field < max_speed_field/12)
+Defaults to "".
+
+For startswith and endswith, <transam-filter-string> is defined with the following syntax: "<search-expression>" | (<quoted-search-expression>) | eval(<eval-expression>
+
+<search-expression> is a valid search expression that does not contain quotes.
+<quoted-search-expression> is a valid search expression that contains quotes.
+<eval-expression> is a valid eval expression that evaluates to a boolean.
+
+Examples:
+
+search expression: (name="foo bar")
+search expression: "user=mildred"
+search expression: ("search literal")
+eval bool expression: eval(distance/time < max_speed)
