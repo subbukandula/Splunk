@@ -1,0 +1,70 @@
+use
+
+ | convert timeformat="%m-%d-%Y %l:%M %p" ctime(_time) AS c_time | table _time, c_time
+or
+
+ | eval strf_time =strftime(_time, "%m-%d-%Y %l:%M %p")  | table _time, strf_time
+This results in
+
+2015-08-13 06:33:17     08-13-2015 6:33 AM 
+
+2017-03-02T09:41:38.405Z
+
+Like this (The trailing Z is for Zulu, AKA GMT so you need to grab the TZ with %Z):
+
+ | eval time=strptime(timeValue,"%Y-%m-%dT%H:%M:%S.%3N%Z")
+
+eval TimeDiff=itime-ptime
+
+===============================================================================================
+
+%Y-%m-%d	2017-12-31
+%y-%m-%d	17-12-31
+%b %d, %Y	Feb 11, 2017
+q|%d%b '%y = %Y-%m-%d|	q|23 Apr '17 = 2017-04-23|
+
+%c	The date and time in the current locale's format as defined by the server's operating system. For example, Mon Jul 13 09:30:00 2017 for US English on Linux.
+%+	The date and time with time zone in the current locale's format as defined by the server's operating system. For example, Mon Jul 13 09:30:00 PDT 2017 for US English on Linux.
+
+ %Ez	Splunk-specific, timezone in minutes.
+ %H	Hour (24-hour clock) as a decimal number. Hours are represented by the values 00 to 23. Leading zeros are accepted but not required.
+ %I	Hour (12-hour clock) with the hours represented by the values 01 to 12. Leading zeros are accepted but not required.
+ %k	Like %H, the hour (24-hour clock) as a decimal number. Leading zeros are replaced by a space, for example 0 to 23.
+ %M	Minute as a decimal number. Minutes are represented by the values 00 to 59. Leading zeros are accepted but not required.
+ %N	Subseconds with width. (%3N = milliseconds, %6N = microseconds, %9N = nanoseconds)
+ %p	AM or PM.
+ %Q	The subsecond component of 2017-11-30 23:59:59.999 UTC.
+ %3Q = milliseconds, with values of 000-999. %6Q = microseconds, with values of 000000-999999. %9Q = nanoseconds, with values of 000000000-999999999.
+
+ %S	Second as a decimal number, for example 00 to 59.
+ %s	The Unix Epoch Time timestamp, or the number of seconds since the Epoch: 1970-01-01 00:00:00 +0000 (UTC). (1484993700 is Sat Jan 21 10:15:00 2017)
+ %T	The time in 24-hour notation (%H:%M:%S). For example 23:59:59.
+ %X	The time in the format for the current locale. For US English the format for 9:30 AM is 9:30:00.
+ %Z	The timezone abbreviation. For example EST for US Eastern Standard Time.
+ %z	The timezone offset from UTC, in hour and minute: +hhmm or -hhmm. For example, for 5 hours before UTC the values is -0500 which is US Eastern Standard Time.
+
+Examples:
+
+Use %z to specify hour and minute, for example -0500
+Use %:z to specify hour and minute separated by a colon, for example -5:00
+Use %::z to specify hour minute and second separated with colons, for example -05:00:00
+Use %:::z to specify hour only, for example -05
+ %%	A literal "%" character.
+
+
+ %F	Equivalent to %Y-%m-%d (the ISO 8601 date format).
+ %x	The date in the format of the current locale. For example, 7/13/2017 for US English.
+
+ %A	Full weekday name. (Sunday, ..., Saturday)
+ %a	Abbreviated weekday name. (Sun, ... ,Sat)
+ %d	Day of the month as a decimal number, includes a leading zero. (01 to 31)
+ %e	Like %d, the day of the month as a decimal number, but a leading zero is replaced by a space. (1 to 31)
+ %j	Day of year as a decimal number, includes a leading zero. (001 to 366)
+ %w	Weekday as a decimal number. (0 = Sunday, ..., 6 = Saturday)
+
+ %b	Abbreviated month name. (Jan, Feb, etc.)
+ %B	Full month name. (January, February, etc.)
+ %m	Month as a decimal number. (01 to 12). Leading zeros are accepted but not required.
+
+ %y	Year as a decimal number, without the century. (00 to 99). Leading zeros are accepted but not required.
+ %Y	Year as a decimal number with century. For example, 2017.
