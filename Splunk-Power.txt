@@ -1,5 +1,9 @@
 Instructor On Demand --> questions with peers. 
 ButterCup Games 
+
+Splunk Certified Power User
+DATE: May 21, 2018 VERSION: 6.x 
+LICENSE #: Cert-238315
  
 Module 1: (basics of Splunk User) 
 =========  
