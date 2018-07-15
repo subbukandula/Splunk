@@ -1,3 +1,7 @@
+ | eval _time=strptime(timegenerated,"%Y-%m-%dT%H:%M:%SZ")
+ | sort 0 - _time
+ | transaction fields=hostname maxspan=60m 
+
 Transaction: is a related group of events.
 
 http | transaction host,cookie maxspan=30s maxpause=30s | highlight host
