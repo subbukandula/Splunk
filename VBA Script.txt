@@ -1,0 +1,32 @@
+' VBA to create queries.
+
+Sub Subbu()
+
+Dim part_id As String, Session_id As String, Start_time As String, End_time As String, Query As String
+
+part_id = Range("D6").Value
+Session_id = Range("D7").Value
+Start_time = Range("D8").Value
+End_time = Range("D9").Value
+
+Query = "Select * from par_table where part_id = '" & part_id & "' and session_id = '" & Session_id & "'" & vbLf
+Query = Query & " and start_time = '" & Start_time & "' and end_time = '" & End_time & "'"
+
+Range("J5").Value = Query
+
+Const MyInteger As Integer = 42
+Const myDate As Date = #2/2/2020#
+Const myDay As String = "Sunday"
+
+Dim password As String
+password = "Admin#1"
+
+Dim num As Integer
+num = 1234
+
+Dim BirthDay As Date
+BirthDay = DateValue("30 / 10 / 2020")
+
+'MsgBox "Passowrd is " & password & Chr(10) & "Value of num is " & num & Chr(10) & "Value of Birthday is " & BirthDay
+
+End Sub
