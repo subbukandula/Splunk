@@ -6,8 +6,13 @@ DATE: May 21, 2018 VERSION: 6.x
 LICENSE #: Cert-238315
 
 
+
   field=Description "^(?<TaskID>[^-]+).*" 
-  
+  Combine the results from a main search with the results from a subsearch search vendors. The result sets are joined on the product_id field, which is common to both sources.
+
+... | join product_id [search vendors]
+
+
   
 Module 1: (basics of Splunk User) 
 =========  
