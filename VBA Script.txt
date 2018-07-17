@@ -1,3 +1,25 @@
+Sub Subbu()
+
+Dim part_id As String, Session_id As String, Start_time As String, End_time As String, Query As String
+Dim STArray() As String, ETArray() As String
+
+part_id = Range("D6").Value
+Session_id = Range("D7").Value
+Start_time = Range("D8").Value
+End_time = Range("D9").Value
+
+STArray = Split(Start_time, ",")
+ETArray = Split(End_time, ",")
+
+Query = "Select * from par_table where part_id = '" & part_id & "' and session_id = '" & Session_id & "'" & vbLf
+Query = Query & " and (start_time = '" & STArray(0) & "' and end_time = '" & ETArray(0) & "')"
+Query = Query & " or (start_time = '" & STArray(1) & "' and end_time = '" & ETArray(1) & "')"
+
+Range("J5").Value = Query
+
+End Sub
+
+
 ' VBA to create queries.
 
 Sub Subbu()
